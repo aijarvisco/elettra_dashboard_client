@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { useAuth } from '@clerk/vue'
 import type {
   MetricsSummary,
   TimelineDataPoint,
@@ -19,19 +18,27 @@ const api = axios.create({
   },
 })
 
+// Token getter function - will be set by initApiAuth()
+let tokenGetter: (() => Promise<string | null>) | null = null
+
+// Call this from a Vue component to set up auth token injection
+export function initApiAuth(getToken: () => Promise<string | null>): void {
+  tokenGetter = getToken
+}
+
 // Add auth token to requests
 api.interceptors.request.use(async (config) => {
-  // For cross-origin requests, we need to include the Clerk session token
-  // Get token from Clerk and add as Authorization header
-  try {
-    const { getToken } = useAuth()
-    const token = await getToken.value?.()
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  // Get token from the stored getter and add as Authorization header
+  if (tokenGetter) {
+    try {
+      const token = await tokenGetter()
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } catch {
+      // If we can't get the token, continue without it
+      // The server will return 401 if auth is required
     }
-  } catch {
-    // If we can't get the token, continue without it
-    // The server will return 401 if auth is required
   }
   config.withCredentials = true
   return config
