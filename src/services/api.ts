@@ -5,7 +5,9 @@ import type {
   Session,
   Message,
   KnowledgeVaultItem,
-  PaginatedResponse
+  PaginatedResponse,
+  Contact,
+  ContactDetail
 } from '@/types'
 
 // Use environment variable for API URL, fallback to /api for local dev with proxy
@@ -83,6 +85,32 @@ export const conversationsApi = {
     knowledgeVault: KnowledgeVaultItem[]
   }> => {
     const { data } = await api.get(`/conversations/${id}`)
+    return data
+  },
+}
+
+// Contacts API (contact-based view)
+export const contactsApi = {
+  list: async (page: number = 1, pageSize: number = 10): Promise<PaginatedResponse<Contact>> => {
+    const { data } = await api.get<PaginatedResponse<Contact>>('/conversations/contacts', {
+      params: { page, pageSize },
+    })
+    return data
+  },
+
+  search: async (
+    query: string,
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<PaginatedResponse<Contact>> => {
+    const { data } = await api.get<PaginatedResponse<Contact>>('/conversations/contacts/search', {
+      params: { q: query, page, pageSize },
+    })
+    return data
+  },
+
+  getById: async (id: string): Promise<ContactDetail> => {
+    const { data } = await api.get<ContactDetail>(`/conversations/contacts/${id}`)
     return data
   },
 }

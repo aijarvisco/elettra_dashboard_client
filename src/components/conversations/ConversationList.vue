@@ -7,17 +7,17 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import type { Session, PaginatedResponse } from '@/types'
+import type { Contact, PaginatedResponse } from '@/types'
 
 interface Props {
-  conversations: PaginatedResponse<Session>
+  contacts: PaginatedResponse<Contact>
   selectedId?: string
   loading?: boolean
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  select: [session: Session]
+  select: [contact: Contact]
   search: [query: string]
   pageChange: [page: number]
 }>()
@@ -40,13 +40,13 @@ watch(searchInput, (newValue) => {
   emit('search', newValue)
 })
 
-const canGoPrevious = computed(() => props.conversations.page > 1)
-const canGoNext = computed(() => props.conversations.page < props.conversations.totalPages)
+const canGoPrevious = computed(() => props.contacts.page > 1)
+const canGoNext = computed(() => props.contacts.page < props.contacts.totalPages)
 
-const displayName = (session: Session) => {
-  if (session.name) return session.name
-  if (session.phoneNumber && session.phoneNumber !== 'Unknown') return session.phoneNumber
-  if (session.email) return session.email
+const displayName = (contact: Contact) => {
+  if (contact.name) return contact.name
+  if (contact.phoneNumber && contact.phoneNumber !== 'Unknown') return contact.phoneNumber
+  if (contact.email) return contact.email
   return 'Unknown Contact'
 }
 </script>
@@ -72,37 +72,38 @@ const displayName = (session: Session) => {
         <div v-if="loading" class="space-y-2 p-2">
           <Skeleton v-for="i in 5" :key="i" class="h-20 w-full" />
         </div>
-        <div v-else-if="conversations.data.length === 0" class="p-4 text-center text-muted-foreground">
-          No conversations found
+        <div v-else-if="contacts.data.length === 0" class="p-4 text-center text-muted-foreground">
+          No contacts found
         </div>
         <div v-else class="space-y-1 p-2">
           <button
-            v-for="session in conversations.data"
-            :key="session.id"
+            v-for="contact in contacts.data"
+            :key="contact.id"
             :class="cn(
               'w-full rounded-md p-3 text-left transition-colors',
-              selectedId === session.id
+              selectedId === contact.id
                 ? 'bg-secondary'
                 : 'hover:bg-secondary/50'
             )"
-            @click="emit('select', session)"
+            @click="emit('select', contact)"
           >
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-medium text-foreground">
-                  {{ displayName(session) }}
+                  {{ displayName(contact) }}
                 </p>
-                <p v-if="session.email && session.name" class="truncate text-xs text-muted-foreground">
-                  {{ session.email }}
+                <p v-if="contact.email && contact.name" class="truncate text-xs text-muted-foreground">
+                  {{ contact.email }}
                 </p>
               </div>
-              <Badge v-if="session.transferred" variant="success" class="shrink-0">
+              <Badge v-if="contact.transferred" variant="success" class="shrink-0">
                 Transferred
               </Badge>
             </div>
             <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{{ formatDate(session.startedAt) }}</span>
-              <span class="text-foreground/60">{{ session.messageCount }} msgs</span>
+              <span>{{ formatDate(contact.lastActivityAt) }}</span>
+              <span class="text-foreground/60">{{ contact.sessionCount }} {{ contact.sessionCount === 1 ? 'session' : 'sessions' }}</span>
+              <span class="text-foreground/60">{{ contact.totalMessageCount }} msgs</span>
             </div>
           </button>
         </div>
@@ -114,18 +115,18 @@ const displayName = (session: Session) => {
         variant="ghost"
         size="sm"
         :disabled="!canGoPrevious"
-        @click="emit('pageChange', conversations.page - 1)"
+        @click="emit('pageChange', contacts.page - 1)"
       >
         <ChevronLeft class="h-4 w-4" />
       </Button>
       <span class="text-sm text-muted-foreground">
-        {{ conversations.page }} / {{ conversations.totalPages || 1 }}
+        {{ contacts.page }} / {{ contacts.totalPages || 1 }}
       </span>
       <Button
         variant="ghost"
         size="sm"
         :disabled="!canGoNext"
-        @click="emit('pageChange', conversations.page + 1)"
+        @click="emit('pageChange', contacts.page + 1)"
       >
         <ChevronRight class="h-4 w-4" />
       </Button>

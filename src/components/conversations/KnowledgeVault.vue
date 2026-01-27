@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { X } from 'lucide-vue-next'
+import { X, ExternalLink } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import type { KnowledgeVaultItem } from '@/types'
+import type { KnowledgeVaultItem, Document } from '@/types'
 
 interface Props {
   items: KnowledgeVaultItem[]
+  documents?: Document[]
   loading?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  documents: () => []
+})
 const emit = defineEmits<{
   close: []
 }>()
@@ -30,6 +33,8 @@ const groupedItems = computed(() => {
 })
 
 const categoryOrder = computed(() => Object.keys(groupedItems.value).sort())
+
+const hasContent = computed(() => props.items.length > 0 || props.documents.length > 0)
 </script>
 
 <template>
@@ -47,10 +52,11 @@ const categoryOrder = computed(() => Object.keys(groupedItems.value).sort())
           <div v-if="loading" class="space-y-4">
             <Skeleton v-for="i in 4" :key="i" class="h-24 w-full" />
           </div>
-          <div v-else-if="items.length === 0" class="py-8 text-center text-muted-foreground">
+          <div v-else-if="!hasContent" class="py-8 text-center text-muted-foreground">
             No data collected
           </div>
           <div v-else class="space-y-4">
+            <!-- Knowledge Vault Items -->
             <div v-for="category in categoryOrder" :key="category">
               <Badge variant="outline" class="mb-2">{{ category }}</Badge>
               <div class="space-y-2">
@@ -62,6 +68,24 @@ const categoryOrder = computed(() => Object.keys(groupedItems.value).sort())
                   <p class="text-xs font-medium text-muted-foreground">{{ item.key }}</p>
                   <p class="mt-1 text-sm text-foreground">{{ item.value }}</p>
                 </div>
+              </div>
+            </div>
+
+            <!-- Images & Documents Section -->
+            <div v-if="documents.length > 0">
+              <Badge variant="outline" class="mb-2">Images & Documents</Badge>
+              <div class="space-y-2">
+                <a
+                  v-for="doc in documents"
+                  :key="doc.id"
+                  :href="doc.link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-2 rounded-md border bg-card p-3 hover:bg-secondary/50 transition-colors"
+                >
+                  <ExternalLink class="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span class="text-sm text-foreground truncate">{{ doc.imageId }}</span>
+                </a>
               </div>
             </div>
           </div>

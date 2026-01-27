@@ -57,3 +57,38 @@ export interface ApiError {
   error: string
   code: string
 }
+
+// Contact-based types
+export interface Contact {
+  id: string
+  name?: string
+  phoneNumber: string
+  email?: string
+  sessionCount: number
+  totalMessageCount: number
+  transferred: boolean
+  lastActivityAt: string
+}
+
+export interface SessionMetadata {
+  id: string
+  createdAt: string
+  transferred: boolean
+  messageCount: number
+}
+
+export interface Document {
+  id: string
+  sessionId: string
+  category?: string
+  imageId: string
+  link: string
+}
+
+export interface ContactDetail {
+  contact: Contact
+  sessions: SessionMetadata[]
+  messages: Message[]
+  knowledgeVault: KnowledgeVaultItem[]
+  documents: Document[]
+}
